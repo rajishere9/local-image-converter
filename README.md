@@ -2,8 +2,6 @@
 
 A web application built with Next.js, Tailwind CSS, and shadcn/ui that allows you to convert images locally in your browser. No files are uploaded to any server.
 
-![Screenshot of Local Image Converter](public/screenshot.png) <!-- Placeholder for screenshot -->
-
 ## Features
 
 *   **Client-Side Conversion:** All image processing happens directly in your browser using the Canvas API and JavaScript libraries.
