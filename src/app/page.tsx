@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+// Input removed as it was unused
 import {
   Select,
   SelectContent,
@@ -26,6 +26,7 @@ import GIF from 'gif.js';
 import JSZip from 'jszip'; // Import JSZip
 import { saveAs } from 'file-saver'; // Utility to trigger downloads
 import { X, Download } from 'lucide-react'; // Icons
+import NextImage from 'next/image'; // Import Next.js Image component with alias
 
 const MAX_FILES = 50;
 
@@ -155,8 +156,9 @@ export default function Home() {
             });
             try {
               gif.render();
-            } catch (err: any) {
-              reject(new Error(`GIF rendering error: ${err?.message || err}`));
+            } catch (err: unknown) {
+              const errorMessage = err instanceof Error ? err.message : String(err);
+              reject(new Error(`GIF rendering error: ${errorMessage}`));
             }
           } else {
             canvas.toBlob(
@@ -192,15 +194,16 @@ export default function Home() {
     const results: DownloadInfo[] = [];
     let filesProcessed = 0;
     const totalFiles = selectedFiles.length;
-    let conversionErrors: string[] = [];
+    const conversionErrors: string[] = []; // Use const
 
     for (const file of selectedFiles) {
       try {
         const result = await convertFile(file, outputFormat, jpegQuality);
         results.push(result);
-      } catch (err: any) {
+      } catch (err: unknown) { // Use unknown
+        const errorMessage = err instanceof Error ? err.message : String(err);
         console.error(`Failed to convert ${file.name}:`, err);
-        conversionErrors.push(`Failed ${file.name}: ${err.message}`);
+        conversionErrors.push(`Failed ${file.name}: ${errorMessage}`);
       } finally {
         filesProcessed++;
         setConversionProgress(Math.round((filesProcessed / totalFiles) * 100));
@@ -345,9 +348,10 @@ export default function Home() {
           setError(`Failed to generate ZIP file: ${err.message}`);
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) { // Use unknown
+       const errorMessage = err instanceof Error ? err.message : String(err);
        console.error("Error fetching blobs for zipping:", err);
-       setError(`Failed to prepare files for zipping: ${err.message}`);
+       setError(`Failed to prepare files for zipping: ${errorMessage}`);
     }
   };
 
@@ -387,7 +391,7 @@ export default function Home() {
             {isDragActive ? (
               <p>Drop the image here ...</p>
             ) : (
-              <p>Drag 'n' drop an image here, or click to select multiple images at once</p>
+              <p>Drag &#39;n&#39; drop an image here, or click to select multiple images at once</p>
             )}
           </div>
           {/* Selected Files Info & Clear Button */}
@@ -451,17 +455,20 @@ export default function Home() {
           )}
           {/* Image Preview Section (Multiple Previews) */}
           {previewUrls.length > 0 && (
-             <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50 dark:bg-gray-800">
-               {previewUrls.map((url, index) => (
-                 <div key={index} className="relative aspect-square flex justify-center items-center">
-                   <img
-                     src={url}
-                     alt={`Preview ${index + 1}`}
-                     className="max-w-full max-h-full object-contain rounded"
-                   />
-                 </div>
-               ))}
-             </div>
+              <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50 dark:bg-gray-800">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="relative aspect-square"> {/* Removed flex for Next Image */}
+                    <NextImage
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      fill // Use fill to cover the parent div
+                      style={{ objectFit: 'contain' }} // Maintain aspect ratio
+                      className="rounded" // Keep rounded corners
+                      sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, 20vw" // Provide sizes for optimization
+                    />
+                  </div>
+                ))}
+              </div>
            )}
           {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
         </CardContent>
